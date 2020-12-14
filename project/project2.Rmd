@@ -1,8 +1,310 @@
 ---
-title: "Project 2"
-author: "Me"
-date: "2020-12-01"
+title: "Exploration of Psychiatric Facilities Nationwide"
+name: Caroline Lamar
 output: html_document
 ---
 
-## Test Project 2
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+```
+
+
+```{r cars}
+library(tidyverse) 
+library(ggplot2)
+ipfacility <- read.csv("inpatientfacility.csv")
+```
+
+
+This dataset is from the U.S. Department of Health & Human Services updated through October 29, 2020. There are 1,597 different facilities with 14 different variables. There are some descriptor variables such as Facility ID, Name, Address, City, State, Location, Zip.Code, etc. The numeric variables are hrs.of.phys.res (the total hours of physical restraint from the facility),total hours of seclusion for each facility (hrs.of.seclusion), the number of patients discharged from each facility on multiple antipsychotic medications (pts.dc.on.mult.antipsych), number of alcohol use interventions offerred at each facility (alc.use.intervention), and number of tobacco treatments offered at each facility (tobacco.tx). The "readmitted" variable is a categorical variable that assesses if the number of patients readmitted to another psychiatric hospital are readmitted after 30 days is no different than the national rate, worse than the national rate, better than the national rate, not available, or the numbers are too small to tell. 
+
+
+```{r pressure, echo=FALSE}
+ipfacility$HBIPS.2.Measure.Description<- NULL
+ipfacility$HBIPS.3.Measure.Description<-NULL
+ipfacility$HBIPS.5.Measure.Description <-NULL
+ipfacility$SUB.2..2a.Measure.Description<- NULL
+ipfacility$TOB.2..2a.Measure_Desc <- NULL
+ipfacility$FUH.Measure.Description<-NULL
+ipfacility$FUH.30..<-NULL
+ipfacility$READM.30.IPF.Measure.Desc<- NULL
+ipfacility %>% rename(hrs.of.phys.rest=HBIPS.2.Overall.Num) %>% rename(hrs.of.seclusion=HBIPS.3.Overall.Num) %>% rename(pts.dc.on.mult.antipsych=HBIPS.5.Denominator) %>% rename(alc.use.intervention=SUB.2.Denominator) %>% rename(tobacco.tx=TOB.2.Denominator) %>% rename(readmitted=READM.30.IPF.Category)-> ipfacility2
+
+```
+
+#MANOVA
+```{r}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(mvtnorm)
+
+ipfac3<-ipfacility2%>%mutate_at(c(8:12), str_replace,"Not Available", "NA")
+
+ipfac4<-ipfac3 %>% mutate_at(c("pts.dc.on.mult.antipsych","hrs.of.phys.rest", "hrs.of.seclusion","tobacco.tx", "alc.use.intervention"), as.numeric)
+
+#manova
+manova1 <-manova(cbind(pts.dc.on.mult.antipsych,hrs.of.phys.rest,hrs.of.seclusion,tobacco.tx,alc.use.intervention)~readmitted, data=ipfac4)
+summary(manova1)
+#anovas
+summary.aov(manova1)
+
+ipfac4%>%group_by(readmitted)%>%summarize(mean(hrs.of.phys.rest, na.rm=T),mean(hrs.of.seclusion, na.rm=T), mean(pts.dc.on.mult.antipsych, na.rm=T), mean(alc.use.intervention, na.rm=T), mean(tobacco.tx, na.rm=T))
+
+#posthoc 
+pairwise.t.test(ipfac4$hrs.of.phys.rest,ipfac4$readmitted, p.adj="none")
+pairwise.t.test(ipfac4$hrs.of.seclusion,ipfac4$readmitted, p.adj="none")
+pairwise.t.test(ipfac4$alc.use.intervention,ipfac4$readmitted, p.adj="none")
+pairwise.t.test(ipfac4$tobacco.tx,ipfac4$readmitted, p.adj="none")
+
+
+#assumptions
+library(rstatix)
+
+group <- ipfac4$readmitted 
+DVs <- ipfac4%>% select(hrs.of.phys.rest,hrs.of.seclusion,pts.dc.on.mult.antipsych,alc.use.intervention,tobacco.tx)
+
+#Test multivariate normality for each group (null: assumption met)
+sapply(split(DVs,group), mshapiro_test)
+
+#If any p<.05, stop (assumption violated). If not, test homogeneity of covariance matrices
+
+```
+This MANOVA tells us that at least one of the response variables shows a mean difference from the readmission rates variable since the F statistic is significant (less than .05). The univariate ANOVAs suggest that there is a mean difference for the hours of physical restraints, hours of seclusion, tobacco treatment, and alcohol intervention variables (so all but pts dc on mult antipsych) from the readmission rates. After the post-hoc analysis, there were 46 tests completed (1 MANOVA, 5 ANOVAs, and 40 t test - if we included Patients discharged on multpile antipsychotics it would have been 50 t tests but since it was not significant in the ANOVA there was no need to do a t test). Using Bonferronis correction the new value would be .00108696 for significance (.05/46). The probability of making at least one type one error is 0.905531755862 (1-.95^46). After using Bonferronis Correction, thec comparisons in the post-hoc tests were Number of Cases too Small and No Different than the national rate in hours of physical restraint (p=.00028), Better than the national rate when compared to all of the other readmission rates (no different, not avaliable, number of cases too small, worse) in hours of seclusion, Better than the national rate paired with Not Avaliable and Number of Cases too small in alcohol use and intervention offered (p=00047, p=.00029), and multiple pairings in the tobacco treatment variable (Better than National rate with NA, better than national with number of cases too small, no different than national with cases too small, better than national with no different than national, NA with worse and number of cases too small with worse than national). As for assumptions of the MANOVA, they were not met. When looking at a multivariate normality test, there was multiple p values less than .05 so the first assumption of multivariate normality was failed.
+
+
+
+#Randomization Test - ANOVA
+```{r}
+summary(aov(hrs.of.seclusion~readmitted,data=ipfac4))
+
+pairwise.t.test(ipfac4$hrs.of.seclusion, ipfac4$readmitted, p.adj = "none")
+
+ipfac4 %>% ggplot(aes(hrs.of.seclusion,readmitted, color=readmitted)) + geom_point()
+```
+This ANOVA is a randomization test that shows there is a significant mean difference in the different levels of readmission and hours of seclusion (The F statistic is well below .05). The null hypothesis is that there is not a significant difference in the means of hours of seclusion in the different readmitted conditions. The alternative hypothesis is that there is a significant mean difference between the two variables. In this ANOVA we reject the null hypothesis because the F statistic is less than .05 and therefore there is a significant difference in the means. The post-hoc t-test shows that there is a siginificant difference in the hours of seclusion means when the readmittied rate is better than the national average when compared to all of the other readmitted conditions.By the ggplot you can see that the hours of seclusion differ significantly in the "Better than the National Rate" compared to the other conditions supporting the ANOVA.
+
+
+#Linear Regression Model 
+```{R}
+library(sandwich)
+library(lmtest)
+#center means
+data.frame(alc.use.intervention_c=ipfac4$alc.use.intervention-mean(ipfac4$alc.use.intervention, na.rm=T))
+ipfac4$alc.use.intervention_c <- ipfac4$alc.use.intervention -mean(ipfac4$alc.use.intervention, na.rm=T)
+data.frame(tobacco.tx_c=ipfac4$tobacco.tx-mean(ipfac4$tobacco.tx, na.rm=T))
+ipfac4$tobacco.tx_c <- ipfac4$tobacco.tx -mean(ipfac4$tobacco.tx, na.rm=T)
+
+#interaction
+lregminteraction<-lm(hrs.of.seclusion ~ tobacco.tx_c*alc.use.intervention_c, data=ipfac4)
+summary(lregminteraction)
+
+library(interactions)
+interact_plot(lregminteraction, pred = tobacco.tx_c, modx = alc.use.intervention_c, plot.points = TRUE)
+
+#assumptions
+resids<-lregminteraction$residuals
+fitvals<-lregminteraction$fitted.values
+data.frame(resids,fitvals)%>%ggplot(aes(fitvals,resids))+geom_point()+geom_hline(yintercept=0)
+
+bptest(lregminteraction)
+
+par(mfrow=c(1,2)); hist(resids); qqnorm(resids); qqline(resids, col='red')
+ks.test(resids, "pnorm", sd=sd(resids))
+
+coeftest(lregminteraction, vcov = vcovHC(lregminteraction))
+
+```
+  The linear regression model prediciting hours of seclusion from the interaction of alcohol and tobacco treatment being offered is seen above. The intercept estimate shows that the mean hours of seclusion is about 113.2 hours for facilities with average tobacco and alcohol treatments offered. Facilties with average alcohol treatments have predicted hours of seclusion that increases by .3464 with tobacco treatment offered more. Facilties with average tobacco treatment offerings have decreased hours of seclusion use (by -.5451) when alcohol treatment is offered more. When alcohol and tobacco treatment interact with each other the t is barely significant so they have a significant interaction with eachother on hours of seclusion, therefore an interaction plot was plotted (this is tested later for validity with robust standard errors).
+  The assumption of homoskedasticity is met as seen in the bptest since you fail to reject the null hypothesis that the data is homoskedastic (p=.8701). The linearity assumption is met as seen in the resids vs fitvals plot. The normality assumption was not met as seen in the histogram of the residuals, the Q-Q Plot, and the ks.test p value was less than .05 so we reject the null that the data is normally distributed. After computing the regression with robust standard errors, none of the predictors were significant. The interaction of tobacco treatment and alcohol use intervention on predicting hours of seclusion is no longer significant (p=.3020). Additionally, tobacco and alcohol treatment individually are no longer significant predictors of hours of seclusion. The R-squared in the model is .01179 so the model can explain about 1.2% of the variation in the outcome (this is very low). 
+
+#Bootstrapped SEs for linear regression model 
+```{r}
+
+samp_distn<-replicate(5000, {
+boot_dat<-boot_dat<-ipfac4[sample(nrow(ipfac4),replace=TRUE),]
+fit2<-lm(hrs.of.seclusion ~ tobacco.tx_c*alc.use.intervention_c, data=boot_dat)
+coef(fit2)
+})
+## Estimated SEs
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+
+
+
+```
+The bootstrapped SEs for tobacco treatment was .27554, .375118 for alcohol treatment and .000406 for the interaction and the intercept SE was 21.6037. The original SEs are .1431 for tobacco treatment, .2668 for alcohol treatment, .0001998 for the interaction and the intercept SE was 19.3. The robust SEs were .29878 for tobacco treatment, .39237 for alcohol treatment, and .00038485 for the interaction and the intercept SE was 21.434. The bootstrapped SEs and robust SEs were much closer in value, and larger than the original SEs. That being said, you would still fail to reject the null hypothesis like when using the robust SEs (p would not be less than .05). 
+
+
+#Logistic Regression 
+```{R}
+
+library(lmtest)
+library(tidyverse)
+data <- ipfac4 %>% select(pts.dc.on.mult.antipsych, readmitted, hrs.of.phys.rest,hrs.of.seclusion) %>% na.omit %>% mutate(y=ifelse(readmitted=="Better Than the National Rate",1,0))
+fit3<-glm(y ~ pts.dc.on.mult.antipsych + hrs.of.phys.rest + hrs.of.seclusion, data=data, family=binomial(link="logit"))
+coeftest(fit3)
+exp(coef(fit3))
+
+#confusion matrix 
+probs<-predict(fit3,type="response")
+table(predict=as.numeric(probs>.5),truth=data$y)%>%addmargins
+data$logit<-predict(fit3,type="link")
+
+#accuracy 
+(972+4)/1052
+#Sensitivity 
+4/78
+#Specificity 
+972/974
+
+#Precision
+4/6
+
+#density plot 
+data%>%ggplot()+geom_density(aes(logit,color=readmitted,fill=readmitted), alpha=.6)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+xlim(-2,15)
+  geom_rug(aes(logit,color=readmitted))
+ 
+
+library(plotROC) 
+ROCplot<-ggplot(data)+geom_roc(aes(d=y,m=probs), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+```
+  The odds of a facility having better than the national rate readmission rates is -2.6782 when patients discharged on multiple antipsychotics, hours of seclusion, and hours of physical restraint are all 0. Controlling for patients discharged on multiple antipsychotics, hours of seclusion, and hours of physical restraint all have significantly lower odds of the facility having a better than the national average rate of readmission. Controlling for Hours of physical restraint and hours of seclusion, for every increase in patients being discharged on multiple antipsychotics, odds of the facility having a better than the national average rate of readmission after 30 days is .00014848 (not significant). Controlling for hours of seclusion and patients discharged on multiple antipsychotics, for every increase in hours of physical restraint, the odds of the facility having a better than average national rate of readmission increases by a factor of .00001925 (not significant). When controlling for patients discharged on multiple antipsychotics and hours of physical restraints, for every increase in the hour of seclusion, the odds of the facility in having a better than the national average rate of readmission (a lower rate of readmission) is .0006227 (significant). 
+  The accuracy is high, .92776, which is good because it represents the proportion of all cases tht were correctly classified (so 92.78% were correctly classified). The Sensitivity is .05128 which is low, which is the proportion of facilities with rates better than the average national rate which is bad - that is what we want to dummy distinguish from the others. The specificity is high,.9979, which is the proportion of rates that were lower than the "better than the national rate" category (0), which is good because that means that 99.79% of the "0s" were correctly classified. The precision value is the proportion of "better than the national rate" classified as "better than the national average" and that actually were. This value is .66667 so about 1/3 of the values were incorrect here which would be best if the precision was higher. The AUC value is .6695 which is poor and means there is a poor level of seperability - the model does not do well at distinguishing between the two classes. You can also see this in the ROC curve because it looks nearly linear hinting the AUC is going to be lower and that seperability is going to be poor. 
+  
+
+#Logistic Regression with all variables
+```{R}
+data1<-ipfac4 %>% select(pts.dc.on.mult.antipsych, readmitted, hrs.of.phys.rest,hrs.of.seclusion, alc.use.intervention, tobacco.tx) %>% na.omit %>% mutate(y=ifelse(readmitted=="Better Than the National Rate",1,0))
+fit5<-glm(y ~ pts.dc.on.mult.antipsych + hrs.of.phys.rest + hrs.of.seclusion + tobacco.tx +alc.use.intervention, data=data1, family=binomial(link="logit"))
+coeftest(fit5)
+exp(coef(fit5))
+data1$prob<-predict(fit5,type="response")
+table(predict=as.numeric(data1$prob>.5),truth=data1$y)%>%addmargins
+
+#accuracy
+(824+6)/898
+#sensitivity 
+mean(data1[data1$y==1,]$prob>.5)
+#specificity
+mean(data1[data1$y==0,]$prob<.5)
+#precision 
+6/8
+
+#AUC
+ROCplot<-ggplot(data1)+geom_roc(aes(d=y,m=prob), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+
+```
+The AUC calculated from the logisitc regression is poor (.6838008). The accuracy and specificty are high (in the 90 percentile) which is good. The sensitivity is low and the precision is .75. Therefore about 75% of the Better than the national average conditions were correctly classified. This means 1/4 of them were not so it would be best if this was higher. That would help with the AUC. In the logistic regression the overall test was significant (z was less than .05) so between all of the variables and readmission there is a significant effect. However, only hours of seclusion has significance on its own. 
+
+```{R}
+class_diag <- function(probs,truth){
+#CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV
+tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+f1=2*(sens*ppv)/(sens+ppv)
+if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+#CALCULATE EXACT AUC
+ord<-order(probs, decreasing=TRUE)
+probs <- probs[ord]; truth <- truth[ord]
+TPR=cumsum(truth)/max(1,sum(truth))
+FPR=cumsum(!truth)/max(1,sum(!truth))
+dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+n <- length(TPR)
+auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+data.frame(acc,sens,spec,ppv,f1,auc)}
+```
+
+#10-Fold CV Logistic Regression 
+```{R}
+
+k=10
+
+data2<-data1[sample(nrow(data1)),] 
+folds<-cut(seq(1:nrow(data1)),breaks=k,labels=F)
+
+diags<-NULL
+for(i in 1:k){
+
+  train<-data2[folds!=i,] 
+  test<-data2[folds==i,]
+  
+  truth<-test$y 
+  
+
+  fit6<-glm(y ~ pts.dc.on.mult.antipsych + hrs.of.phys.rest + hrs.of.seclusion + tobacco.tx +alc.use.intervention,data=train,family="binomial")
+  
+
+  probss<-predict(fit6,newdata = test,type="response")
+  
+  diags<-rbind(diags,class_diag(probss,truth))
+}
+
+
+summarize_all(diags,mean)
+
+```
+This AUC is lower in the 10 fold CV regression which makes sense because sometimes logistic regressions with many variables that are complex can over fit. However the AUC did not decrease by much. The accuracy, specificity and sensitivity are also all slightly smaller in this model are lower than the in sample metrics. However, it is not by lot. 
+
+#LASSO
+```{R}
+RNGkind(sample.kind="Rejection")
+library(glmnet)
+data3<-ipfac4 %>% select(pts.dc.on.mult.antipsych, readmitted, hrs.of.phys.rest,hrs.of.seclusion, alc.use.intervention, tobacco.tx) %>% na.omit %>% mutate(y=ifelse(readmitted=="Better Than the National Rate",1,0))
+y<-as.matrix(data3$y) #grab response
+x<-model.matrix(y~pts.dc.on.mult.antipsych + hrs.of.phys.rest + hrs.of.seclusion + tobacco.tx +alc.use.intervention,data=data3)[,-1] #predictors (drop intercept)
+x<-scale(x)
+head(x)
+
+cv <- cv.glmnet(x,y, family="binomial")
+{plot(cv$glmnet.fit, "lambda", label=TRUE); abline(v = log(cv$lambda.1se)); abline(v = log(cv$lambda.min),lty=2)}
+
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+
+After the LASSO, the only variable the is retained is hours in seclusion. 
+
+```{R}
+
+k=10
+
+data2<-data1[sample(nrow(data1)),] 
+folds<-cut(seq(1:nrow(data1)),breaks=k,labels=F)
+
+diags<-NULL
+for(i in 1:k){
+
+  train<-data2[folds!=i,] 
+  test<-data2[folds==i,]
+  
+  truth<-test$y 
+  
+
+  fit8<-glm(y ~ hrs.of.seclusion,data=train,family="binomial")
+  
+
+  probss<-predict(fit8,newdata = test,type="response")
+  
+  diags<-rbind(diags,class_diag(probss,truth))
+}
+
+
+summarize_all(diags,mean)
+
+
+```
+
+After doing another 10 fold CV with only the hours of seclusion value, you see the AUC decrease again, which can account for the overfitting that occurs in complex models but the value is still poor. The sensitiviy is very low, and lowered more compared to both of the models above. The accuracy adn specificity are still high in this model and relatiively close to the two models above. 
+
+
+

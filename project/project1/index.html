@@ -7,7 +7,7 @@
     <meta name="author" content="Caroline Lamar" />
     
     <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
-    <title>Project 1</title>
+    <title>Comparison of Inpatient Psychiatric Care by State - Caroline Lamar</title>
     <meta name="generator" content="Hugo 0.79.0" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../../css/main.css" />
@@ -54,13 +54,13 @@
       <div class="container">
         <div class="blog-post">
           <h3>
-            <strong><a href="../../project/project1/">Project 1</a></strong>
+            <strong><a href="../../project/project1/">Comparison of Inpatient Psychiatric Care by State - Caroline Lamar</a></strong>
           </h3>
         </div>
  
 <div class="blog-title">
           <h4>
-         December 1, 2020 
+         January 1, 0001 
             &nbsp;&nbsp;
             
           </h4>
@@ -72,9 +72,482 @@
               
 
 
-<div id="test-project-1" class="section level2">
-<h2>Test Project 1</h2>
-</div>
+<p>The two datasets that I have chosen are from the U.S. Department of Health and Human Services and are active datasets that were last updated June 20, 2020. One dataset describes psychiatric care by state and the other by facility which contains facilities from all over the nation. There are some categorical variables describing the location of facilities. The numeric variables are Hours of Physical Restraint, Hours of Seclusion, Patients Discharged on Multiple Antipsychotic Medications, Patients Readmitted to Any Hospital 30 Days After Discharge, Patients Offered Alcohol and Drug Treatment and Patients Offered Tobacco Treatment.</p>
+<p>I chose this data because I work at an inpatient psychiatric hospital. I have noticed that inpatient psychiatric care tends to differ state-by-state depending on many factors such as funding and laws in different states surrounding behavioral health. These variables are often controversial matters that different states and even hospitals handle differently such as hours in seclusion. Some states have different laws about how long an indiviual can be in seclusion. I suspect that states with higher numbers of patients discharged on multiple antipsychotic medications may be associated with a higher number of patients readmitted because often times areas with patients with a more psychotic diagnosis have higher readmission rates due to the nature of the illness. I also suspect that states with higher hours of physical restraint will have higher hours of seclusion.</p>
+<pre class="r"><code>ipstate &lt;- read.csv(&quot;inpatientstate.csv&quot;)
+ipfacility &lt;- read.csv(&quot;inpatientfacility1.csv&quot;)</code></pre>
+<pre class="r"><code>library(tidyverse)
+glimpse(ipfacility)</code></pre>
+<pre><code>## Rows: 1,597
+## Columns: 17
+## $ Facility.ID                   &lt;int&gt; 50077, 50272, 50567, 70008, 100135, 100…
+## $ Facility.Name                 &lt;fct&gt; &quot;SCRIPPS MERCY HOSPITAL&quot;, &quot;REDLANDS COM…
+## $ Address                       &lt;fct&gt; &quot;4077 5TH AVE&quot;, &quot;350 TERRACINA BLVD&quot;, &quot;…
+## $ City                          &lt;fct&gt; SAN DIEGO, REDLANDS, MISSION VIEJO, STA…
+## $ State                         &lt;fct&gt; CA, CA, CA, CT, FL, FL, GA, IL, IL, IN,…
+## $ ZIP.Code                      &lt;int&gt; 92103, 92373, 92691, 6076, 32308, 34655…
+## $ County.Name                   &lt;fct&gt; SAN DIEGO, SAN BERNARDINO, ORANGE, TOLL…
+## $ HBIPS.5.Measure.Description   &lt;fct&gt; Patients discharged on multiple antipsy…
+## $ HBIPS.5.Denominator           &lt;fct&gt; 41, 14, 54, 11, 18, 12, Not Available, …
+## $ SUB.3..3a.Measure.Description &lt;fct&gt; Alcohol and other drug use disorder tre…
+## $ SUB.3.Denominator             &lt;fct&gt; 367, 322, 141, 332, 222, 420, 109, 430,…
+## $ TOB.3..3a.Measure.Description &lt;fct&gt; Tobacco use treatment provided or offer…
+## $ TOB.3.Denominator             &lt;fct&gt; 176, 239, 99, 327, 203, 368, 70, 331, 1…
+## $ FUH.Measure.Description       &lt;fct&gt; Percent of patients receiving follow-up…
+## $ FUH.30.Denominator            &lt;fct&gt; 92, 52, 93, 69, 99, 147, 132, 49, 92, 8…
+## $ READM.30.IPF.Measure.Desc     &lt;fct&gt; Patients readmitted to any hospital wit…
+## $ READM.30.IPF.Denominator      &lt;fct&gt; 319, 111, 244, 245, 250, 530, 388, 157,…</code></pre>
+<pre class="r"><code>glimpse(ipstate)</code></pre>
+<pre><code>## Rows: 52
+## Columns: 9
+## $ State                       &lt;fct&gt; AK, AL, AR, AZ, CA, CO, CT, DC, DE, FL, G…
+## $ HBIPS.2.Measure.Description &lt;fct&gt; Hours of physical-restraint use, Hours of…
+## $ S.HBIPS.2.Overall.Num       &lt;dbl&gt; 184.44, 1890.62, 884.02, 11068.68, 20314.…
+## $ HBIPS.3.Measure.Description &lt;fct&gt; Hours of seclusion use, Hours of seclusio…
+## $ S.HBIPS.3.Overall.Num       &lt;dbl&gt; 711.87, 1438.50, 1217.97, 4249.59, 13124.…
+## $ HBIPS.5.Measure.Description &lt;fct&gt; Patients discharged on multiple antipsych…
+## $ S.HBIPS.5..                 &lt;dbl&gt; 56, 68, 68, 60, 33, 56, 67, 75, 52, 64, 5…
+## $ READM.30.IPF.Measure.Desc   &lt;fct&gt; Patients readmitted to any hospital withi…
+## $ S.READM.30.IPF...IPFs.Worse &lt;int&gt; 0, 1, 3, 0, 18, 0, 0, 1, 0, 34, 1, 0, 0, …</code></pre>
+<pre class="r"><code>ipfacility$HBIPS.5.Measure.Description &lt;- NULL
+ipfacility$SUB.3..3a.Measure.Description &lt;- NULL
+ipfacility$TOB.3..3a.Measure.Description &lt;- NULL
+ipfacility$FUH.Measure.Description &lt;- NULL
+ipfacility$READM.30.IPF.Measure.Desc &lt;- NULL
+ipstate$HBIPS.5.Measure.Description &lt;- NULL
+ipstate$S.HBIPS.5.. &lt;- NULL
+ipstate$HBIPS.5.Measure.Description &lt;- NULL
+ipstate$S.READM.30.IPF...IPFs.Worse &lt;- NULL
+ipstate$READM.30.IPF.Measure.Desc &lt;- NULL
+ipstate2 &lt;- ipstate %&gt;% rename(Overall.Hrs.in.Restraints = S.HBIPS.2.Overall.Num) %&gt;% 
+    rename(Overall.Hrs.in.Seclusion = S.HBIPS.3.Overall.Num) %&gt;% 
+    select(-HBIPS.2.Measure.Description, -HBIPS.3.Measure.Description)
+ipfacility2 &lt;- ipfacility %&gt;% rename(Pts.DC.on.antipsychotics = HBIPS.5.Denominator) %&gt;% 
+    rename(alc.drug.tx.offered = SUB.3.Denominator) %&gt;% 
+    rename(tobacco.tx.offered = TOB.3.Denominator) %&gt;% 
+    rename(recieved.followup.care = FUH.30.Denominator) %&gt;% 
+    rename(pts.readmitted = READM.30.IPF.Denominator)
+ipfacility2</code></pre>
+<pre><code>##   Facility.ID                        Facility.Name                   Address
+## 1       50077               SCRIPPS MERCY HOSPITAL              4077 5TH AVE
+## 2       50272          REDLANDS COMMUNITY HOSPITAL        350 TERRACINA BLVD
+## 3       50567 MISSION HOSPITAL REGIONAL MED CENTER   27700 MEDICAL CENTER RD
+## 4       70008            JOHNSON MEMORIAL HOSPITAL    201 CHESTNUT HILL ROAD
+## 5      100135      TALLAHASSEE MEMORIAL HEALTHCARE        1300 MICCOSUKEE RD
+## 6      100191            MEDICAL CENTER OF TRINITY       9330 SR 54, STE 401
+## 7      110010            EMORY UNIVERSITY HOSPITAL     1364 CLIFTON ROAD, NE
+## 8      140018     MT SINAI HOSPITAL MEDICAL CENTER 15TH STREET AT CALIFORNIA
+##               City State ZIP.Code    County.Name Pts.DC.on.antipsychotics
+## 1        SAN DIEGO    CA    92103      SAN DIEGO                       41
+## 2         REDLANDS    CA    92373 SAN BERNARDINO                       14
+## 3    MISSION VIEJO    CA    92691         ORANGE                       54
+## 4 STAFFORD SPRINGS    CT     6076        TOLLAND                       11
+## 5      TALLAHASSEE    FL    32308           LEON                       18
+## 6          TRINITY    FL    34655          PASCO                       12
+## 7          ATLANTA    GA    30322        DE KALB            Not Available
+## 8          CHICAGO    IL    60608           COOK            Not Available
+##   alc.drug.tx.offered tobacco.tx.offered recieved.followup.care pts.readmitted
+## 1                 367                176                     92            319
+## 2                 322                239                     52            111
+## 3                 141                 99                     93            244
+## 4                 332                327                     69            245
+## 5                 222                203                     99            250
+## 6                 420                368                    147            530
+## 7                 109                 70                    132            388
+## 8                 430                331                     49            157
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 1589 rows ]</code></pre>
+<pre class="r"><code>ipstate2</code></pre>
+<pre><code>##    State Overall.Hrs.in.Restraints Overall.Hrs.in.Seclusion
+## 1     AK                    184.44                   711.87
+## 2     AL                   1890.62                  1438.50
+## 3     AR                    884.02                  1217.97
+## 4     AZ                  11068.68                  4249.59
+## 5     CA                  20314.67                 13124.67
+## 6     CO                   6811.69                 13599.96
+## 7     CT                   6906.42                  2397.75
+## 8     DC                    874.72                   468.21
+## 9     DE                    220.20                    69.45
+## 10    FL                  13149.43                  3624.09
+## 11    GA                  10257.50                  1573.12
+## 12    HI                     24.35                     6.79
+## 13    IA                   1920.29                  2161.55
+## 14    ID                    186.32                   369.24
+## 15    IL                  16641.48                  1534.66
+## 16    IN                   5346.03                  4768.30
+## 17    KS                    472.95                   523.25
+## 18    KY                   4811.30                   770.98
+## 19    LA                   2753.81                  1790.98
+## 20    MA                   5140.88                  1534.75
+## 21    MD                   3681.39                  2575.14
+## 22    ME                    470.17                   647.26
+## 23    MI                  16863.48                  2644.93
+## 24    MN                  15951.61                  4577.47
+## 25    MO                   2562.17                  1802.92
+## 26    MS                    896.17                  1280.88
+## 27    MT                   1282.12                  1188.57
+## 28    NC                   4728.67                  6068.96
+## 29    ND                    794.49                  4139.84
+## 30    NE                    256.07                   172.63
+## 31    NH                   5224.22                  3399.07
+## 32    NJ                   4318.66                  1233.86
+## 33    NM                    179.53                   212.83
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 19 rows ]</code></pre>
+<p>I chose to do a full join by State so that each so that none of the observations from either dataset would get dropped and NAs would be inserted. This is important because the ipstate dataset contains Overall Hours in Restraints and Overall Hrs in Seclusion for each state while ipfacility contains many observations of the other variables by state. I did not want to lose any data with a left or right join. I joined the datasets by the common variable &quot;State.&quot;</p>
+<pre class="r"><code>library(dplyr)
+fulldata &lt;- full_join(ipfacility2, ipstate2)
+fulldata</code></pre>
+<pre><code>##   Facility.ID                        Facility.Name                 Address
+## 1       50077               SCRIPPS MERCY HOSPITAL            4077 5TH AVE
+## 2       50272          REDLANDS COMMUNITY HOSPITAL      350 TERRACINA BLVD
+## 3       50567 MISSION HOSPITAL REGIONAL MED CENTER 27700 MEDICAL CENTER RD
+## 4       70008            JOHNSON MEMORIAL HOSPITAL  201 CHESTNUT HILL ROAD
+## 5      100135      TALLAHASSEE MEMORIAL HEALTHCARE      1300 MICCOSUKEE RD
+## 6      100191            MEDICAL CENTER OF TRINITY     9330 SR 54, STE 401
+## 7      110010            EMORY UNIVERSITY HOSPITAL   1364 CLIFTON ROAD, NE
+##               City State ZIP.Code    County.Name Pts.DC.on.antipsychotics
+## 1        SAN DIEGO    CA    92103      SAN DIEGO                       41
+## 2         REDLANDS    CA    92373 SAN BERNARDINO                       14
+## 3    MISSION VIEJO    CA    92691         ORANGE                       54
+## 4 STAFFORD SPRINGS    CT     6076        TOLLAND                       11
+## 5      TALLAHASSEE    FL    32308           LEON                       18
+## 6          TRINITY    FL    34655          PASCO                       12
+## 7          ATLANTA    GA    30322        DE KALB            Not Available
+##   alc.drug.tx.offered tobacco.tx.offered recieved.followup.care pts.readmitted
+## 1                 367                176                     92            319
+## 2                 322                239                     52            111
+## 3                 141                 99                     93            244
+## 4                 332                327                     69            245
+## 5                 222                203                     99            250
+## 6                 420                368                    147            530
+## 7                 109                 70                    132            388
+##   Overall.Hrs.in.Restraints Overall.Hrs.in.Seclusion
+## 1                  20314.67                 13124.67
+## 2                  20314.67                 13124.67
+## 3                  20314.67                 13124.67
+## 4                   6906.42                  2397.75
+## 5                  13149.43                  3624.09
+## 6                  13149.43                  3624.09
+## 7                  10257.50                  1573.12
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 1590 rows ]</code></pre>
+<p>My data was already mostly tidy besides removing some unwanted columns which I did above. To show that I understand tidying I moved around the variables in the dataset so that the counties were the columns and the variables were the rows. I first took the joined dataset and turned the categorical variables that I wanted to asses into numeric variables with mutate and then replaced the &quot;Not Available&quot; names in columns with NA so that I could perform summary statistics on those variables using mutate. After that I grouped fulldata2 into counties, selected the variables I wanted to take the mean of, and used summarize to generate means and standard deviations. Then I pivoted the counties longer, separated the name column into variables and stats, and then pivoted wider so that the county names would be wide and the values would go under each county name. Finally I arranged by descending variable alphabetically. This dataset is very wide, but I did it to demonstrate that I understand tidying. I also tidy the datasets more when I generated more summary statistics below.</p>
+<pre class="r"><code>library(dbplyr)
+library(tidyverse)
+
+fulldata2 &lt;- fulldata %&gt;% mutate_at(c(&quot;Pts.DC.on.antipsychotics&quot;, 
+    &quot;pts.readmitted&quot;, &quot;alc.drug.tx.offered&quot;, &quot;tobacco.tx.offered&quot;, 
+    &quot;recieved.followup.care&quot;), as.numeric) %&gt;% mutate_if(is.numeric, 
+    str_replace, &quot;Not Available&quot;, &quot;NA&quot;)
+
+fulldata2 %&gt;% mutate_at(c(&quot;Pts.DC.on.antipsychotics&quot;, 
+    &quot;pts.readmitted&quot;, &quot;alc.drug.tx.offered&quot;, &quot;tobacco.tx.offered&quot;, 
+    &quot;recieved.followup.care&quot;), as.numeric) %&gt;% group_by(County.Name) %&gt;% 
+    select(8:12) %&gt;% summarize_if(is.numeric, c(mean = mean, 
+    sd = sd), na.rm = T) %&gt;% pivot_longer(-County.Name) %&gt;% 
+    separate(name, into = c(&quot;variable&quot;, &quot;stat&quot;), sep = &quot;_&quot;) %&gt;% 
+    pivot_wider(names_from = &quot;County.Name&quot;, values_from = &quot;value&quot;) %&gt;% 
+    arrange(-desc(variable))</code></pre>
+<pre><code>## # A tibble: 10 x 656
+##    variable stat  ACADIA   ADA ADAIR ADAMS AIBONITO AIKEN ALACHUA ALAMANCE
+##    &lt;chr&gt;    &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;
+##  1 alc.dru… mean     100  348. 402.   200.      386   121   194.       291
+##  2 alc.dru… sd        NA  163.  85.6  172.       NA    NA    87.0       NA
+##  3 Pts.DC.… mean      88  153  153    138.      153    90   153        126
+##  4 Pts.DC.… sd        NA    0    0     31        NA    NA     0         NA
+##  5 pts.rea… mean     220  342.  86.5  392.      566   437   251        251
+##  6 pts.rea… sd        NA  377.  16.3  162.       NA    NA   334.        NA
+##  7 recieve… mean     311  176. 177    139        95    54   112.         8
+##  8 recieve… sd        NA  141.  65.1  118.       NA    NA    53.0       NA
+##  9 tobacco… mean     259  312. 305    201.      365   123   148        321
+## 10 tobacco… sd        NA  217. 218.   146.       NA    NA    42.4       NA
+## # … with 646 more variables: ALAMEDA &lt;dbl&gt;, ALBANY &lt;dbl&gt;, ALCORN &lt;dbl&gt;,
+## #   ALLEGANY &lt;dbl&gt;, ALLEGHANY &lt;dbl&gt;, ALLEGHENY &lt;dbl&gt;, ALLEN &lt;dbl&gt;,
+## #   ANCHORAGE &lt;dbl&gt;, ANDERSON &lt;dbl&gt;, ANDROSCOGGIN &lt;dbl&gt;, ANGELINA &lt;dbl&gt;,
+## #   ANOKA &lt;dbl&gt;, APPLING &lt;dbl&gt;, ARAPAHOE &lt;dbl&gt;, ARLINGTON &lt;dbl&gt;,
+## #   AROOSTOOK &lt;dbl&gt;, ASCENSION &lt;dbl&gt;, ASHLAND &lt;dbl&gt;, ASHLEY &lt;dbl&gt;,
+## #   ASHTABULA &lt;dbl&gt;, ATHENS &lt;dbl&gt;, ATLANTIC &lt;dbl&gt;, AUDRAIN &lt;dbl&gt;,
+## #   AUGLAIZE &lt;dbl&gt;, AUGUSTA &lt;dbl&gt;, AVERY &lt;dbl&gt;, AVOYELLES &lt;dbl&gt;, BALDWIN &lt;dbl&gt;,
+## #   BALTIMORE &lt;dbl&gt;, BANNOCK &lt;dbl&gt;, BARBOUR &lt;dbl&gt;, BARNSTABLE &lt;dbl&gt;,
+## #   BAXTER &lt;dbl&gt;, BAY &lt;dbl&gt;, BEAUFORT &lt;dbl&gt;, BEAUREGARD &lt;dbl&gt;, BEAVER &lt;dbl&gt;,
+## #   BECKHAM &lt;dbl&gt;, BELKNAP &lt;dbl&gt;, BELL &lt;dbl&gt;, BELTRAMI &lt;dbl&gt;, `BEN HILL` &lt;dbl&gt;,
+## #   BENTON &lt;dbl&gt;, BERGEN &lt;dbl&gt;, BERKELEY &lt;dbl&gt;, BERKS &lt;dbl&gt;, BERKSHIRE &lt;dbl&gt;,
+## #   BERNALILLO &lt;dbl&gt;, BERRIEN &lt;dbl&gt;, BEXAR &lt;dbl&gt;, BIBB &lt;dbl&gt;, BINGHAM &lt;dbl&gt;,
+## #   `BLACK HAWK` &lt;dbl&gt;, BLOUNT &lt;dbl&gt;, BOLIVAR &lt;dbl&gt;, BOND &lt;dbl&gt;,
+## #   BONNEVILLE &lt;dbl&gt;, BOONE &lt;dbl&gt;, BOSSIER &lt;dbl&gt;, BOULDER &lt;dbl&gt;, BOURBON &lt;dbl&gt;,
+## #   BOWIE &lt;dbl&gt;, BOYD &lt;dbl&gt;, BOYLE &lt;dbl&gt;, BRADLEY &lt;dbl&gt;, BRAZOS &lt;dbl&gt;,
+## #   BREVARD &lt;dbl&gt;, BRISTOL &lt;dbl&gt;, BRONX &lt;dbl&gt;, BROOME &lt;dbl&gt;, BROWARD &lt;dbl&gt;,
+## #   BROWN &lt;dbl&gt;, BRUNSWICK &lt;dbl&gt;, BUCHANAN &lt;dbl&gt;, BUCKS &lt;dbl&gt;, `BUENA
+## #   VISTA` &lt;dbl&gt;, BULLOCK &lt;dbl&gt;, BUNCOMBE &lt;dbl&gt;, BURKE &lt;dbl&gt;, BURLEIGH &lt;dbl&gt;,
+## #   BURLINGTON &lt;dbl&gt;, BUTLER &lt;dbl&gt;, CABARRUS &lt;dbl&gt;, CABELL &lt;dbl&gt;, `CABO
+## #   ROJO` &lt;dbl&gt;, CACHE &lt;dbl&gt;, CADDO &lt;dbl&gt;, CALCASIEU &lt;dbl&gt;, CALHOUN &lt;dbl&gt;,
+## #   CALLAWAY &lt;dbl&gt;, CALLOWAY &lt;dbl&gt;, CAMBRIA &lt;dbl&gt;, CAMDEN &lt;dbl&gt;, CAMERON &lt;dbl&gt;,
+## #   CAMPBELL &lt;dbl&gt;, CANNON &lt;dbl&gt;, CARBON &lt;dbl&gt;, CARROLL &lt;dbl&gt;, `CARSON
+## #   CITY` &lt;dbl&gt;, CARTER &lt;dbl&gt;, …</code></pre>
+<p>This is another example of tidying but instead I pivoted the dataset so that the states were columns and the variables were rows. I used the same process as described above.</p>
+<pre class="r"><code>fulldata2 %&gt;% mutate_at(c(&quot;Pts.DC.on.antipsychotics&quot;, 
+    &quot;pts.readmitted&quot;, &quot;alc.drug.tx.offered&quot;, &quot;tobacco.tx.offered&quot;, 
+    &quot;recieved.followup.care&quot;), as.numeric) %&gt;% group_by(State) %&gt;% 
+    select(8:12) %&gt;% summarize_if(is.numeric, c(mean = mean, 
+    sd = sd), na.rm = T) %&gt;% pivot_longer(-State) %&gt;% 
+    separate(name, into = c(&quot;variable&quot;, &quot;stat&quot;), sep = &quot;_&quot;) %&gt;% 
+    pivot_wider(names_from = &quot;State&quot;, values_from = &quot;value&quot;) %&gt;% 
+    arrange(-desc(variable))</code></pre>
+<pre><code>## # A tibble: 10 x 54
+##    variable stat     AK    AL    AR    AZ    CA    CO    CT    DC    DE    FL
+##    &lt;chr&gt;    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 alc.dru… mean  198   265.  303.  261.  241.  204.  263.   62.8 256.  252. 
+##  2 alc.dru… sd    218.  176.  187.  159.  154.  113.  158.   71.6 130.  116. 
+##  3 Pts.DC.… mean  140.   96.6 111.   90.7  89.9  94.4 107.   85.2  75.3  94.8
+##  4 Pts.DC.… sd     23.1  48.3  54.4  56.9  44.0  46.6  47.9  57.0  50.8  48.7
+##  5 pts.rea… mean  396.  341.  341.  335.  345.  313.  352.  398.  478.  385. 
+##  6 pts.rea… sd    264.  184.  170.  215.  216.  174.  206.  229.  267.  206. 
+##  7 recieve… mean  218.  164.  176.  156.  197.  116.  211.  242.  196.  141. 
+##  8 recieve… sd    164.  113.  112.  113.  109.  119.  119.  104.  118.  103. 
+##  9 tobacco… mean  210.  226.  240.  251.  246.  200.  233.  178.  237.  253. 
+## 10 tobacco… sd    199.  150.  170.  162.  166.  139.  158.  199.  118.  123. 
+## # … with 42 more variables: GA &lt;dbl&gt;, HI &lt;dbl&gt;, IA &lt;dbl&gt;, ID &lt;dbl&gt;, IL &lt;dbl&gt;,
+## #   IN &lt;dbl&gt;, KS &lt;dbl&gt;, KY &lt;dbl&gt;, LA &lt;dbl&gt;, MA &lt;dbl&gt;, MD &lt;dbl&gt;, ME &lt;dbl&gt;,
+## #   MI &lt;dbl&gt;, MN &lt;dbl&gt;, MO &lt;dbl&gt;, MS &lt;dbl&gt;, MT &lt;dbl&gt;, NC &lt;dbl&gt;, ND &lt;dbl&gt;,
+## #   NE &lt;dbl&gt;, NH &lt;dbl&gt;, NJ &lt;dbl&gt;, NM &lt;dbl&gt;, NV &lt;dbl&gt;, NY &lt;dbl&gt;, OH &lt;dbl&gt;,
+## #   OK &lt;dbl&gt;, OR &lt;dbl&gt;, PA &lt;dbl&gt;, PR &lt;dbl&gt;, RI &lt;dbl&gt;, SC &lt;dbl&gt;, SD &lt;dbl&gt;,
+## #   TN &lt;dbl&gt;, TX &lt;dbl&gt;, UT &lt;dbl&gt;, VA &lt;dbl&gt;, VT &lt;dbl&gt;, WA &lt;dbl&gt;, WI &lt;dbl&gt;,
+## #   WV &lt;dbl&gt;, WY &lt;dbl&gt;</code></pre>
+<p>To begin my summary statistics, I first took the summary statistics of each variable. All of the variables had very large standard deviations from their means like Patients Discharged on Antipsychotics and Hours in Restraints highlighting the difference in care by each state. For example, the minimum hours in seclusion was about 7 hours overall while the maximum was over 28,000 hours overall. After that, I took the summary statistics of each variable grouped by state so that each variable's average could be seen by state. Arizona had the greatest hours in restraints while Vermont had the greatest hours in seclusion which is interesting because I expected one state to have the maximum values for both of those variables. The last set of summary statistics that I did found the summary statistics filter above or below the mean of patients readmitted and combined the alcohol and drug and tobacco treatment variable into substance abuse treatment. When greater amounts of patients were readmitted, the mean for every single variable except for hours in restraints increased, not by much, but I found that very interesting. When the mean was greater for patients being admitted, those mean of those recieving follow up care also increased.</p>
+<pre class="r"><code>library(dplyr)
+library(tidyverse)
+fulldata2</code></pre>
+<pre><code>##   Facility.ID                        Facility.Name                 Address
+## 1       50077               SCRIPPS MERCY HOSPITAL            4077 5TH AVE
+## 2       50272          REDLANDS COMMUNITY HOSPITAL      350 TERRACINA BLVD
+## 3       50567 MISSION HOSPITAL REGIONAL MED CENTER 27700 MEDICAL CENTER RD
+## 4       70008            JOHNSON MEMORIAL HOSPITAL  201 CHESTNUT HILL ROAD
+## 5      100135      TALLAHASSEE MEMORIAL HEALTHCARE      1300 MICCOSUKEE RD
+## 6      100191            MEDICAL CENTER OF TRINITY     9330 SR 54, STE 401
+## 7      110010            EMORY UNIVERSITY HOSPITAL   1364 CLIFTON ROAD, NE
+##               City State ZIP.Code    County.Name Pts.DC.on.antipsychotics
+## 1        SAN DIEGO    CA    92103      SAN DIEGO                       93
+## 2         REDLANDS    CA    92373 SAN BERNARDINO                       28
+## 3    MISSION VIEJO    CA    92691         ORANGE                      107
+## 4 STAFFORD SPRINGS    CT     6076        TOLLAND                        6
+## 5      TALLAHASSEE    FL    32308           LEON                       50
+## 6          TRINITY    FL    34655          PASCO                       13
+## 7          ATLANTA    GA    30322        DE KALB                      153
+##   alc.drug.tx.offered tobacco.tx.offered recieved.followup.care pts.readmitted
+## 1                 281                 91                    321            284
+## 2                 241                161                    269             27
+## 3                  48                465                    322            208
+## 4                 249                253                    294            209
+## 5                 138                124                    328            214
+## 6                 323                286                     50            463
+## 7                  11                426                     34            346
+##   Overall.Hrs.in.Restraints Overall.Hrs.in.Seclusion
+## 1                  20314.67                 13124.67
+## 2                  20314.67                 13124.67
+## 3                  20314.67                 13124.67
+## 4                   6906.42                  2397.75
+## 5                  13149.43                  3624.09
+## 6                  13149.43                  3624.09
+## 7                   10257.5                  1573.12
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 1590 rows ]</code></pre>
+<pre class="r"><code>summarydata &lt;- fulldata2 %&gt;% mutate_at(c(&quot;Pts.DC.on.antipsychotics&quot;, 
+    &quot;pts.readmitted&quot;, &quot;alc.drug.tx.offered&quot;, &quot;tobacco.tx.offered&quot;, 
+    &quot;recieved.followup.care&quot;, &quot;Overall.Hrs.in.Restraints&quot;, 
+    &quot;Overall.Hrs.in.Seclusion&quot;), as.numeric)
+
+summarydata %&gt;% summarize_at(vars(Pts.DC.on.antipsychotics:Overall.Hrs.in.Seclusion), 
+    c(Mean = mean, SD = sd, Var = var, n.distinct = n_distinct, 
+        list(Min = min, Max = max)), na.rm = T) %&gt;% 
+    pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, 
+    into = c(&quot;Variable&quot;, &quot;test&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;test&quot;, 
+    values_from = &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 7 x 7
+##   Variable                    Mean     SD       Var n.distinct   Min    Max
+##   &lt;chr&gt;                      &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 Pts.DC.on.antipsychotics    96.5   49.7     2470.        153  1      153 
+## 2 alc.drug.tx.offered        245.   159.     25256.        463  1      463 
+## 3 tobacco.tx.offered         240.   153.     23280.        466  1      466 
+## 4 recieved.followup.care     189.   113.     12763.        329  1      329 
+## 5 pts.readmitted             340.   203.     41375.        684  1      684 
+## 6 Overall.Hrs.in.Restraints 7599.  6048.  36574571.         52 24.4  20315.
+## 7 Overall.Hrs.in.Seclusion  4952.  4677.  21875529.         52  6.79 28445.</code></pre>
+<pre class="r"><code># groupby state
+summarydata %&gt;% group_by(State) %&gt;% select(State, 8:14) %&gt;% 
+    summarize_at(vars(Pts.DC.on.antipsychotics:Overall.Hrs.in.Seclusion), 
+        c(Mean = mean, Sd = sd, Var = var, n.distinct = n_distinct, 
+            list(min = min, max = max)), na.rm = T) %&gt;% 
+    pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, 
+    into = c(&quot;Variable&quot;, &quot;test&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;test&quot;, 
+    values_from = &quot;value&quot;) %&gt;% arrange(-desc(State))</code></pre>
+<pre><code>## # A tibble: 364 x 8
+##    State Variable                   Mean    Sd    Var n.distinct   min   max
+##    &lt;fct&gt; &lt;chr&gt;                     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 AK    Pts.DC.on.antipsychotics  140.   23.1   533.          2  113   153 
+##  2 AK    alc.drug.tx.offered       198   218.  47404           3   18   440 
+##  3 AK    tobacco.tx.offered        210.  199.  39792.          3   33   426 
+##  4 AK    recieved.followup.care    218.  164.  26985.          3   29   329 
+##  5 AK    pts.readmitted            396.  264.  69896.          3  164   684 
+##  6 AK    Overall.Hrs.in.Restraints 184.    0       0           1  184.  184.
+##  7 AK    Overall.Hrs.in.Seclusion  712.    0       0           1  712.  712.
+##  8 AL    Pts.DC.on.antipsychotics   96.6  48.3  2329.         24    6   153 
+##  9 AL    alc.drug.tx.offered       265.  176.  30866.         26   12   463 
+## 10 AL    tobacco.tx.offered        226.  150.  22356.         33   14   466 
+## # … with 354 more rows</code></pre>
+<pre class="r"><code># filtering by mean of pts.readmitted
+summarydata %&gt;% summarise_at(vars(pts.readmitted), 
+    mean, na.rm = T)</code></pre>
+<pre><code>##   pts.readmitted
+## 1       340.0751</code></pre>
+<pre class="r"><code>summarydata %&gt;% mutate(substance.abuse.tx.offered = tobacco.tx.offered + 
+    alc.drug.tx.offered) %&gt;% filter(pts.readmitted &gt;= 
+    383.8936) %&gt;% summarize_at(vars(Pts.DC.on.antipsychotics:substance.abuse.tx.offered), 
+    c(Mean = mean, Sd = sd, Var = var, n.distinct = n_distinct, 
+        list(min = min, max = max)), na.rm = T) %&gt;% 
+    pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, 
+    into = c(&quot;Variable&quot;, &quot;test&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;test&quot;, 
+    values_from = &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 8 x 7
+##   Variable                     Mean     Sd       Var n.distinct    min    max
+##   &lt;chr&gt;                       &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 Pts.DC.on.antipsychotics     95.5   49.6     2456.        115   3      153 
+## 2 alc.drug.tx.offered         255.   160.     25554.        295   1      463 
+## 3 tobacco.tx.offered          260.   159.     25123.        303   1      466 
+## 4 recieved.followup.care      178.   109.     11835.        226   1      329 
+## 5 pts.readmitted              564.   100.     10027.        301 384      684 
+## 6 Overall.Hrs.in.Restraints  7894.  6237.  38898448.         52  24.4  20315.
+## 7 Overall.Hrs.in.Seclusion   4879.  4445.  19759122.         52   6.79 28445.
+## 8 substance.abuse.tx.offered  515.   279.     78023.        381  14      929</code></pre>
+<pre class="r"><code>summarydata %&gt;% mutate(substance.abuse.tx.offered = tobacco.tx.offered + 
+    alc.drug.tx.offered) %&gt;% filter(pts.readmitted &lt;= 
+    383.8936) %&gt;% summarize_at(vars(Pts.DC.on.antipsychotics:substance.abuse.tx.offered), 
+    c(Mean = mean, Sd = sd, Var = var, n.distinct = n_distinct, 
+        list(min = min, max = max)), na.rm = T) %&gt;% 
+    pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, 
+    into = c(&quot;Variable&quot;, &quot;test&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;test&quot;, 
+    values_from = &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 8 x 7
+##   Variable                     Mean     Sd       Var n.distinct   min    max
+##   &lt;chr&gt;                       &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+## 1 Pts.DC.on.antipsychotics     97.2   49.8     2481.        119  1      153 
+## 2 alc.drug.tx.offered         239.   158.     25000.        370  2      463 
+## 3 tobacco.tx.offered          227.   147.     21711.        386  1      466 
+## 4 recieved.followup.care      195.   115.     13232.        225  1      329 
+## 5 pts.readmitted              200.    99.5     9908.        383  1      383 
+## 6 Overall.Hrs.in.Restraints  7415.  5922.  35072732.         52 24.4  20315.
+## 7 Overall.Hrs.in.Seclusion   4997.  4818.  23213540.         52  6.79 28445.
+## 8 substance.abuse.tx.offered  466.   256.     65351.        525 11      929</code></pre>
+<p>The Correlation Heat Map showed some interesting correlations between my variables. There was a really high correlation between recieving follow up care and being readmitted (.87) highlights the nature of mental illness - it is often an ongoing battle for patients since there is often no easy fix or cure. There was a high correlation (.86) between those patients being offered tobacco use treatment and being offered alcohol and drug treatment. There was also a bit of a correlation between Overall Hours in restraints and hours in seclusion (0.44) which makes sense because there are some more &quot;hands on&quot; facilities and states. There was nteresting higher correlations between recieving follow up care and pts being readmitted correlated with alcohol and drug treatment offered which could be due to the nature of addiction. A correlation that was much smaller than I presumed it to be was patients discharged on antipsychotics with hours in seclusion and restraints, patients readmitted, and those recieving follow up care. I presumed that those would be the kinds of patients that would experience those situations often because they can often be a danger to themselves and others in a psychotic state and many times psychosis is an ongoing mental illness that requires long term care.</p>
+<pre class="r"><code>cormat &lt;- summarydata %&gt;% select_if(is.numeric) %&gt;% 
+    cor(use = &quot;pair&quot;)
+
+cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, &quot;var2&quot;, values_to = &quot;correlation&quot;) %&gt;% 
+    ggplot(aes(var1, var2, fill = correlation)) + geom_tile() + 
+    scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, 
+        high = &quot;blue&quot;) + geom_text(aes(label = round(correlation, 
+    2)), color = &quot;black&quot;, size = 4) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + coord_fixed() + ggtitle(&quot;Correlation Heat Map&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The bar graph plots hours in restraints and seclusion by state. Arizona had the greatest hours in restraints and Vermont the greatest hours in seclusion. Wyoming and Georgia had very little hours in restraints overall. There seems to be somewhat of a trend that states with higher hours in restraints have higher hours in seclusion but it is not definitive. States like Arizona, Oregon and New York are pretty high in both but there doesn't seem to be a common trend like Vermont for instance has a high seclusion hours but lower hours in restraints while many states appear to be opposite like ID, ME, and MI. This disputes my initial thought that there would be a definitive trend here.</p>
+<pre class="r"><code>library(ggplot2)
+ggplot(summarydata, aes(x = State, y = Overall.Hrs.in.Restraints, 
+    fill = Overall.Hrs.in.Seclusion)) + geom_bar(stat = &quot;summary&quot;, 
+    fun = mean) + scale_y_continuous(breaks = seq(0, 
+    21000, 1500)) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + labs(title = &quot;Hours in Restraints and Seclusion by State&quot;) + 
+    ylab(&quot;Hours in Restraints&quot;) + scale_fill_continuous(low = &quot;lightgreen&quot;, 
+    high = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The Scatterplot shows the very postive correlation between recieving follow up care in 30 days and patients readmitted in 30 days by state. This correlation is a very interesting one. This could be due to patients being discharged to early, patients needing longer term care than an acute hospital, or many other factors but I think this is important and continuity of care is very important when thinking about the long term success of a patient. Being readmitted is not the goal this is a trend that seems to happpen nationwide.</p>
+<pre class="r"><code>ggplot(summarydata, aes(recieved.followup.care, pts.readmitted, 
+    color = State)) + geom_point() + coord_trans(x = &quot;log10&quot;, 
+    y = &quot;log10&quot;) + ggtitle(&quot;Recieving Follow-Up Care in 30 days vs Patients Readmitted in 30 days by State&quot;) + 
+    theme(plot.title = element_text(size = 9)) + labs(x = &quot;Recieved Follow-Up Care&quot;, 
+    y = &quot;Patients Readmitted&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>PAM Cluster When choosing variables to cluster, I was interested if there would be clusters with the variables of those who were offered substance abuse treatment (tobacco, alcohol, and drug) and patients who were discharged on antipsychotics because sometimes psychosis can be drug induced. When looking at the graph to decide the number of clusters, 3 was the elbow and its value was around .35 saying that there might be definitive clusters and a relationship or there may not be, but it is not super likely. When looking at the final scaled medoids, there was not super definitive clusters due to patients discharged on antipsychotics. The two substance abuse categories split into clusters pretty well so a PAM with those two variables probably would have been more conclusive.</p>
+<pre class="r"><code>library(cluster)
+clust_dat &lt;- summarydata %&gt;% dplyr::select(alc.drug.tx.offered, 
+    tobacco.tx.offered, Pts.DC.on.antipsychotics) %&gt;% 
+    na.omit
+
+pam1 &lt;- clust_dat %&gt;% pam(k = 3)
+pam1$silinfo$avg.width</code></pre>
+<pre><code>## [1] 0.3684616</code></pre>
+<pre class="r"><code>pam_dat &lt;- summarydata %&gt;% select(alc.drug.tx.offered, 
+    tobacco.tx.offered, Pts.DC.on.antipsychotics) %&gt;% 
+    na.omit
+sil_width &lt;- vector()
+for (i in 2:10) {
+    pam_fit &lt;- pam(pam_dat, k = i)
+    sil_width[i] &lt;- pam_fit$silinfo$avg.width
+}
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + 
+    scale_x_continuous(name = &quot;k&quot;, breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># determining which k value
+
+final &lt;- summarydata %&gt;% select(alc.drug.tx.offered, 
+    tobacco.tx.offered, Pts.DC.on.antipsychotics) %&gt;% 
+    na.omit %&gt;% scale %&gt;% as.data.frame
+pam2 &lt;- final %&gt;% pam(3)
+pam2</code></pre>
+<pre><code>## Medoids:
+##        ID alc.drug.tx.offered tobacco.tx.offered Pts.DC.on.antipsychotics
+## 1000 1000          -0.5746495         -0.5212294               -0.8154497
+## 347   347          -0.4676786         -0.4687966                0.8544408
+## 1157 1157           1.1180063          1.2877020                0.6733683
+## Clustering vector:
+##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+##   1   1   2   1   1   1   2   2   1   2   1   2   2   3   2   2   1   1   1   2 
+##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+##   1   2   1   3   1   2   2   2   2   3   2   1   1   3   1   1   2   1   3   2 
+##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+##   1   1   3   2   1   1   3   2   2   2   1   2   2   1   3   3   2   1   2   1 
+##  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80 
+##   2   1   1   2   1   2   3   1   3   1   3   1   1   2   1   2   1   2   3   1 
+##  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 
+##   3   2   1   1   2   2   1   2   2   3   2   1   2   2   1   2   1   1   1   1 
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 1497 entries ]
+## Objective function:
+##    build     swap 
+## 1.158228 1.085354 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code>final &lt;- final %&gt;% mutate(cluster = as.factor(pam2$clustering))
+final %&gt;% group_by(cluster) %&gt;% summarize_if(is.numeric, 
+    mean, na.rm = T)</code></pre>
+<pre><code>## # A tibble: 3 x 4
+##   cluster alc.drug.tx.offered tobacco.tx.offered Pts.DC.on.antipsychotics
+##   &lt;fct&gt;                 &lt;dbl&gt;              &lt;dbl&gt;                    &lt;dbl&gt;
+## 1 1                    -0.437             -0.424                   -0.883
+## 2 2                    -0.379             -0.477                    0.884
+## 3 3                     1.07               1.16                     0.373</code></pre>
+<pre class="r"><code>summarydata %&gt;% slice(pam2$id.med)</code></pre>
+<pre><code>##   Facility.ID                                   Facility.Name
+## 1      220163 UMASS MEMORIAL MEDICAL CENTER/UNIVERSITY CAMPUS
+## 2      224021                          ARBOUR-FULLER HOSPITAL
+## 3      104040                          CENTERSTONE OF FLORIDA
+##                Address            City State ZIP.Code County.Name
+## 1 55 LAKE AVENUE NORTH       WORCESTER    MA     1655   WORCESTER
+## 2       200 MAY STREET SOUTH ATTLEBORO    MA     2703     BRISTOL
+## 3      2020 26TH AVE E       BRADENTON    FL    34208     MANATEE
+##   Pts.DC.on.antipsychotics alc.drug.tx.offered tobacco.tx.offered
+## 1                       56                 154                160
+## 2                      139                 171                168
+## 3                      130                 423                436
+##   recieved.followup.care pts.readmitted Overall.Hrs.in.Restraints
+## 1                     69            480                   5140.88
+## 2                    173            583                   5140.88
+## 3                     19            360                  13149.43
+##   Overall.Hrs.in.Seclusion
+## 1                  1534.75
+## 2                  1534.75
+## 3                  3624.09</code></pre>
+<pre class="r"><code>library(GGally)
+ggpairs(final, aes(color = cluster))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
 
             
         <hr>         <div class="related-posts">

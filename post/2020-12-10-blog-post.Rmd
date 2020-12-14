@@ -1,0 +1,50 @@
+---
+title: How Python and R can talk to each other 
+author: 'Caroline Lamar'
+date: '2020-12-10'
+slug: blog-post
+categories: []
+tags: []
+description: ''
+---
+
+Python and R can be thought of as two different languages of coding. There are certain packages such as reticulate, that can use interacting information from both R and Python. Reticulate allows you to run a Python session embedded in your R markdown, you can access code chunks created within R in Python and vice versa, and you can translate between R and Python objects when using things such Pandas. For the sake of understanding how reticulate can chat between R and Python, here is a simple example below. 
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+Download reticualte so you can communicate between r and python.
+```{r}
+library(reticulate)
+
+```
+
+
+Create a dataframe with pandas in python. 
+```{python}
+
+
+import pandas
+
+df = pandas.DataFrame({'qty':[4,8,16], 'candy':['one', 'two', 'three'], 'quality':['eh', 'meh', 'bleh']})
+
+print(df)
+
+
+```
+
+
+Viola! Now you can see that data frame in the r interface - thanks reticulate. 
+```{r}
+
+py$df
+
+
+```
+
+![](candy.png)
+

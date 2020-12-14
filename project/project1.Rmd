@@ -1,8 +1,176 @@
 ---
-title: "Project 1"
-author: "Me"
-date: "2020-12-01"
+title: "Comparison of Inpatient Psychiatric Care by State - Caroline Lamar"
+name: "Caroline Lamar (cl39628)"
 output: html_document
 ---
 
-## Test Project 1
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+```
+
+The two datasets that I have chosen are from the U.S. Department of Health and Human Services and are active datasets that were last updated June 20, 2020. One dataset describes psychiatric care by state and the other by facility which contains facilities from all over the nation. There are some categorical variables describing the location of facilities. The numeric variables are Hours of Physical Restraint, Hours of Seclusion, Patients Discharged on Multiple Antipsychotic Medications, Patients Readmitted to Any Hospital 30 Days After Discharge, Patients Offered Alcohol and Drug Treatment and Patients Offered Tobacco Treatment. 
+
+I chose this data because I work at an inpatient psychiatric hospital. I have noticed that inpatient psychiatric care tends to differ state-by-state depending on many factors such as funding and laws in different states surrounding behavioral health. These variables are often controversial matters that different states and even hospitals handle differently such as hours in seclusion. Some states have different laws about how long an indiviual can be in seclusion. I suspect that states with higher numbers of patients discharged on multiple antipsychotic medications may be associated with a higher number of patients readmitted because often times areas with patients with a more psychotic diagnosis have higher readmission rates due to the nature of the illness. I also suspect that states with higher hours of physical restraint will have higher hours of seclusion.
+
+
+```{r}
+
+ipstate <- read.csv("inpatientstate.csv")
+ipfacility <- read.csv("inpatientfacility1.csv")
+
+```
+
+
+```{r}
+library(tidyverse)
+glimpse(ipfacility)
+glimpse(ipstate)
+ipfacility$HBIPS.5.Measure.Description<- NULL
+ipfacility$SUB.3..3a.Measure.Description<-NULL
+ipfacility$TOB.3..3a.Measure.Description <-NULL
+ipfacility$FUH.Measure.Description <- NULL
+ipfacility$READM.30.IPF.Measure.Desc <- NULL
+ipstate$HBIPS.5.Measure.Description<-NULL
+ipstate$S.HBIPS.5..<-NULL
+ipstate$HBIPS.5.Measure.Description<- NULL
+ipstate$S.READM.30.IPF...IPFs.Worse<-NULL
+ipstate$READM.30.IPF.Measure.Desc<-NULL
+ipstate %>% rename(Overall.Hrs.in.Restraints=S.HBIPS.2.Overall.Num) %>% rename(Overall.Hrs.in.Seclusion=S.HBIPS.3.Overall.Num) %>% select(-HBIPS.2.Measure.Description,-HBIPS.3.Measure.Description) -> ipstate2
+ipfacility %>% rename(Pts.DC.on.antipsychotics=HBIPS.5.Denominator) %>% rename(alc.drug.tx.offered=SUB.3.Denominator) %>% rename(tobacco.tx.offered=TOB.3.Denominator) %>% rename(recieved.followup.care=FUH.30.Denominator) %>% rename(pts.readmitted=READM.30.IPF.Denominator) -> ipfacility2
+ipfacility2
+ipstate2
+```
+
+
+I chose to do a full join by State so that each so that none of the observations from either dataset would get dropped and NAs would be inserted. This is important because the ipstate dataset contains Overall Hours in Restraints and Overall Hrs in Seclusion for each state while ipfacility contains many observations of the other variables by state. I did not want to lose any data with a left or right join. I joined the datasets by the common variable "State." 
+
+
+```{r}
+library(dplyr)
+full_join(ipfacility2, ipstate2) -> fulldata
+fulldata  
+```
+
+
+My data was already mostly tidy besides removing some unwanted columns which I did above. To show that I understand tidying I moved around the variables in the dataset so that the counties were the columns and the variables were the rows. I first took the joined dataset and turned the categorical variables that I wanted to asses into numeric variables with mutate and then replaced the "Not Available" names in columns with NA so that I could perform summary statistics on those variables using mutate. After that I grouped fulldata2 into counties, selected the variables I wanted to take the mean of, and used summarize to generate means and standard deviations. Then I pivoted the counties longer, separated the name column into variables and stats, and then pivoted wider so that the county names would be wide and the values would go under each county name. Finally I arranged by descending variable alphabetically. This dataset is very wide, but I did it to demonstrate that I understand tidying. I also tidy the datasets more when I generated more summary statistics below. 
+```{r}
+library(dbplyr)
+library(tidyverse)
+
+fulldata %>% mutate_at(c("Pts.DC.on.antipsychotics","pts.readmitted", "alc.drug.tx.offered","tobacco.tx.offered", "recieved.followup.care"), as.numeric)%>%mutate_if(is.numeric, str_replace,"Not Available", "NA") -> fulldata2
+
+fulldata2 %>%mutate_at(c("Pts.DC.on.antipsychotics","pts.readmitted", "alc.drug.tx.offered","tobacco.tx.offered", "recieved.followup.care"), as.numeric)%>% group_by(County.Name) %>% select(8:12) %>% summarize_if(is.numeric, c(mean=mean, sd=sd), na.rm=T) %>% pivot_longer(-County.Name) %>% separate(name,into=c("variable","stat"), sep="_") %>% pivot_wider(names_from="County.Name", values_from="value") %>% arrange(-desc(variable)) 
+
+```
+
+
+This is another example of tidying but instead I pivoted the dataset so that the states were columns and the variables were rows. I used the same process as described above. 
+```{R}
+fulldata2 %>% mutate_at(c("Pts.DC.on.antipsychotics","pts.readmitted", "alc.drug.tx.offered","tobacco.tx.offered", "recieved.followup.care"), as.numeric) %>% group_by(State) %>% select(8:12) %>% summarize_if(is.numeric, c(mean=mean, sd=sd), na.rm=T) %>% pivot_longer(-State) %>% separate(name,into=c("variable","stat"), sep="_") %>% pivot_wider(names_from="State", values_from="value") %>% arrange(-desc(variable)) 
+
+
+```
+
+
+To begin my summary statistics, I first took the summary statistics of each variable. All of the variables had very large standard deviations from their means like Patients Discharged on Antipsychotics and Hours in Restraints highlighting the difference in care by each state. For example, the minimum hours in seclusion was about 7 hours overall while the maximum was over 28,000 hours overall. After that, I took the summary statistics of each variable grouped by state so that each variable's average could be seen by state. Arizona had the greatest hours in restraints while Vermont had the greatest hours in seclusion which is interesting because I expected one state to have the maximum values for both of those variables. The last set of summary statistics that I did found the summary statistics filter above or below the mean of patients readmitted and combined the alcohol and drug and tobacco treatment variable into substance abuse treatment. When greater amounts of patients were readmitted, the mean for every single variable except for hours in restraints increased, not by much, but I found that very interesting. When the mean was greater for patients being admitted, those mean of those recieving follow up care also increased. 
+
+```{r}
+library(dplyr)
+library(tidyverse)
+fulldata2
+
+
+fulldata2  %>% mutate_at(c("Pts.DC.on.antipsychotics","pts.readmitted", "alc.drug.tx.offered","tobacco.tx.offered", "recieved.followup.care", "Overall.Hrs.in.Restraints", "Overall.Hrs.in.Seclusion"), as.numeric) ->summarydata
+
+summarydata %>% summarize_at(vars(Pts.DC.on.antipsychotics:Overall.Hrs.in.Seclusion),c(Mean=mean, SD=sd, Var=var, n.distinct=n_distinct, list(Min=min,Max=max)),na.rm=T) %>% pivot_longer(contains("_")) %>% separate(name, into=c("Variable", "test"), sep="_") %>% pivot_wider(names_from="test", values_from="value") 
+
+
+```
+
+
+```{R}
+#groupby state 
+summarydata %>% group_by(State) %>% select(State,8:14) %>% summarize_at(vars(Pts.DC.on.antipsychotics:Overall.Hrs.in.Seclusion),c(Mean=mean, Sd=sd, Var=var, n.distinct=n_distinct, list(min=min,max=max)), na.rm=T) %>% pivot_longer(contains("_")) %>% separate(name, into=c("Variable", "test"), sep="_") %>% pivot_wider(names_from="test", values_from="value") %>% arrange(-desc(State)) 
+```
+
+
+```{R}
+#filtering by mean of pts.readmitted
+summarydata %>% summarise_at(vars(pts.readmitted), mean, na.rm=T)
+
+summarydata %>% mutate(substance.abuse.tx.offered = tobacco.tx.offered+alc.drug.tx.offered) %>% filter(pts.readmitted>=383.8936) %>% summarize_at(vars(Pts.DC.on.antipsychotics:substance.abuse.tx.offered), c(Mean=mean, Sd=sd, Var=var, n.distinct=n_distinct, list(min=min,max=max)), na.rm=T) %>% pivot_longer(contains("_")) %>% separate(name, into=c("Variable", "test"), sep="_") %>% pivot_wider(names_from="test", values_from="value")
+
+summarydata %>% mutate(substance.abuse.tx.offered = tobacco.tx.offered+alc.drug.tx.offered) %>% filter(pts.readmitted<=383.8936) %>% summarize_at(vars(Pts.DC.on.antipsychotics:substance.abuse.tx.offered), c(Mean=mean, Sd=sd, Var=var, n.distinct=n_distinct, list(min=min,max=max)), na.rm=T) %>% pivot_longer(contains("_")) %>% separate(name, into=c("Variable", "test"), sep="_") %>% pivot_wider(names_from="test", values_from="value")
+
+
+```
+
+
+
+
+The Correlation Heat Map showed some interesting correlations between my variables. There was a really high correlation between recieving follow up care and being readmitted (.87) highlights the nature of mental illness - it is often an ongoing battle for patients since there is often no easy fix or cure. There was a high correlation (.86) between those patients being offered tobacco use treatment and being offered alcohol and drug treatment. There was also a bit of a correlation between Overall Hours in restraints and hours in seclusion (0.44) which makes sense because there are some more "hands on" facilities and states. There was nteresting higher correlations between recieving follow up care and pts being readmitted correlated with alcohol and drug treatment offered which could be due to the nature of addiction. A correlation that was much smaller than I presumed it to be was patients discharged on antipsychotics with hours in seclusion and restraints, patients readmitted, and those recieving follow up care. I presumed that those would be the kinds of patients that would experience those situations often because they can often be a danger to themselves and others in a psychotic state and many times psychosis is an ongoing mental illness that requires long term care. 
+
+```{r}
+cormat <- summarydata %>% select_if(is.numeric) %>% cor(use="pair")
+
+cormat %>% as.data.frame %>% rownames_to_column("var1") %>% pivot_longer(-1, "var2", values_to="correlation") %>% ggplot(aes(var1, var2, fill=correlation)) + geom_tile()+
+scale_fill_gradient2(low="red",mid="white",high="blue")+ 
+geom_text(aes(label=round(correlation,2)),color = "black", size = 4)+theme(axis.text.x = element_text(angle = 90, hjust = 1))+theme(axis.text.x = element_text(angle = 90, hjust = 1))+ 
+coord_fixed() + ggtitle("Correlation Heat Map")
+
+
+```
+
+
+The bar graph plots hours in restraints and seclusion by state. Arizona had the greatest hours in restraints and Vermont the greatest hours in seclusion. Wyoming and Georgia had very little hours in restraints overall. There seems to be somewhat of a trend that states with higher hours in restraints have higher hours in seclusion but it is not definitive. States like Arizona, Oregon and New York are pretty high in both but there doesn't seem to be a common trend like Vermont for instance has a high seclusion hours but lower hours in restraints while many states appear to be opposite like ID, ME, and MI. This disputes my initial thought that there would be a definitive trend here. 
+```{r}
+
+library(ggplot2)
+ggplot(summarydata, aes(x=State, y=Overall.Hrs.in.Restraints,fill=Overall.Hrs.in.Seclusion))+
+  geom_bar(stat="summary",fun=mean)+ scale_y_continuous(breaks=seq(0,21000, 1500))+ theme(axis.text.x=element_text(angle=90,hjust=1)) +labs(title="Hours in Restraints and Seclusion by State") + ylab("Hours in Restraints") + scale_fill_continuous(low="lightgreen", high="red")
+
+```
+
+The Scatterplot shows the very postive correlation between recieving follow up care in 30 days and patients readmitted in 30 days by state. This correlation is a very interesting one. This could be due to patients being discharged to early, patients needing longer term care than an acute hospital, or many other factors but I think this is important and continuity of care is very important when thinking about the long term success of a patient. Being readmitted is not the goal this is a trend that seems to happpen nationwide. 
+```{R}
+
+ggplot(summarydata, aes(recieved.followup.care, pts.readmitted, color=State))+geom_point() + 
+  coord_trans(x="log10",y="log10") + ggtitle("Recieving Follow-Up Care in 30 days vs Patients Readmitted in 30 days by State") +  theme(plot.title = element_text(size = 9)) + labs(x="Recieved Follow-Up Care", y="Patients Readmitted") 
+
+
+
+
+```
+
+PAM Cluster 
+When choosing variables to cluster, I was interested if there would be clusters with the variables of those who were offered substance abuse treatment (tobacco, alcohol, and drug) and patients who were discharged on antipsychotics because sometimes psychosis can be drug induced.  When looking at the graph to decide the number of clusters, 3 was the elbow and its value was around .35 saying that there might be definitive clusters and a relationship or there may not be, but it is not super likely. When looking at the final scaled medoids, there was not super definitive clusters due to patients discharged on antipsychotics. The two substance abuse categories split into clusters pretty well so a PAM with those two variables probably would have been more conclusive. 
+```{R}
+library(cluster)
+clust_dat<-summarydata%>%dplyr::select(alc.drug.tx.offered,tobacco.tx.offered, Pts.DC.on.antipsychotics) %>% na.omit
+
+pam1<-clust_dat%>%pam(k=3) 
+pam1$silinfo$avg.width
+pam_dat<-summarydata%>%select(alc.drug.tx.offered,tobacco.tx.offered, Pts.DC.on.antipsychotics) %>% na.omit
+sil_width<-vector()
+for(i in 2:10){  
+  pam_fit <- pam(pam_dat, k = i)  
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+#determining which k value 
+
+final <-summarydata %>% select(alc.drug.tx.offered,tobacco.tx.offered, Pts.DC.on.antipsychotics) %>% na.omit %>% scale %>% as.data.frame
+pam2 <- final %>% pam(3)
+pam2
+final <- final %>% mutate(cluster=as.factor(pam2$clustering))
+final%>%group_by(cluster)%>%summarize_if(is.numeric,mean,na.rm=T)
+summarydata%>%slice(pam2$id.med)
+
+
+library(GGally)
+ggpairs(final, aes(color=cluster))
+```
+
+
+
+
